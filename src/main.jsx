@@ -1,11 +1,29 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+
+import Posts from './routes/Posts';
+import NewPost from './routes/NewPost';
+import RootLayout from './routes/RootLayout';
 import './index.css';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <RootLayout />,
+    children: [
+      {
+        path: '/',
+        element: <Posts />,
+        children: [{ path: '/create-post', element: <NewPost /> }],
+      },
+    ],
+  },
+]);
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <App />
+    <RouterProvider router={router} />
   </React.StrictMode>
 );
 
@@ -96,3 +114,31 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 // useEffect() uses a "trick" in order to get async data without it's parameter function itself being async. The trick is to wrap a function inside the main function, and to call it immediately. This works in React (I'm not sure if it would work in vanilla JS...). In PostsList.jsx this general "pattern" for writing a useEffect() function can be seen
 
 // How does useEffect() know when to be triggered and run? That's what it's second parameter (the array) is for. The array contains any "dependency" (variable\array\object\function\etc.), which exists anywhere in the current component (either if it was defined in the component or passed down as a prop), and then whenever this dependency changes - that useEffect() function will be executed. If the array is empty, that useEffect() will only be run once, when the page loads (which is a common use case)
+
+/* Routing - the Basics */
+
+// Routing in React means "simulating" several web pages in one web page (since React Apps are SPAs - single page applications). We may want, for example, to link to a specific "simulated" page (like a product page). To achieve this, we have the React Router package
+
+// To install React Router - in the terminal: npm i react-router-dom
+
+// What React Router does, basically, is to resolve different URLs and to load different components based on the requested URL
+
+// "Simulated pages" in React are called "routes"
+
+// There's an example of React Router syntax in the main.jsx component (the current component), including importing RouterProvider and createBrowserRouter
+
+// The createBrowserRouter() function takes in an array of objects,and each object contains the path and the corresponding element, and it returns an object that is used as the "router" prop in <RouterProvider />, which should be the app's main component, in order to enable routing
+
+// The React Router library website: https://reactrouter.com/en/main
+
+/* Layout Routes */
+
+// Layout routes define shared "layout" components, like the site header. There's an example for layout routes syntax here in main.jsx
+
+// Layout routes are like regular routes, but they nest other routes inside of them
+
+// It's recommended (but not required) to organize our routes in their own folder
+
+// Inside layout routes components, we need to import the Outlet component from the react-router-dom library. It's a special component that should be placed where the actual nested rout content should be rendered
+
+// Another use case for layout routes is in a modal window like we have in this project. The <Posts /> element is not a shared "layout" component, but it technically is supposed to contain the <NewPost /> component inside it, so technically, if we want to use layout routes, then <Posts /> has to be a parent of <NewPost /> inside the layout router that we define using createBrowserRouter()
