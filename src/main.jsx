@@ -2,8 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 
-import Posts from './routes/Posts';
-import NewPost from './routes/NewPost';
+import Posts, { loader as postsLoader } from './routes/Posts';
+import NewPost, { action as newPostAction } from './routes/NewPost';
+import PostDetails, { loader as postDetailsLoader } from './routes/PostDetails';
 import RootLayout from './routes/RootLayout';
 import './index.css';
 
@@ -15,7 +16,11 @@ const router = createBrowserRouter([
       {
         path: '/',
         element: <Posts />,
-        children: [{ path: '/create-post', element: <NewPost /> }],
+        loader: postsLoader,
+        children: [
+          { path: '/create-post', element: <NewPost />, action: newPostAction },
+          { path: '/:id', element: <PostDetails />, loader: postDetailsLoader },
+        ],
       },
     ],
   },
@@ -27,7 +32,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>
 );
 
-/* Course Section #29 ("Summary Course") */
+/* Course Section #29 ("Summary Course") - Main Summary */
+
+// The section's repo: https://github.com/academind/react-complete-guide-code/tree/zz-reactjs-summary-updated
+
+// NOTE: It's recommended to use Figma in order to draw a flowchart of this project's components, and to have it open wile reviewing it. The structure is a little bit complex
 
 // To activate the live preview, we need to run the dev NPM script (using the bottom left dropdown or by writing npm run dev in the console)
 
@@ -58,6 +67,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 // The HTML for attribute is written as htmlFor when used inside JSX (similar to the case of class\className)
 
 // It's a convention in React to call a function "somethingHandler" when it's intended to be called when an event occures, like when a button is clicked
+
+// NOTE: All of the React functions start with "use", like useState, useEffect, useNavigate, etc.
+
+/* ----------------------------------------------------------------------- */
 
 /* State and React Hooks */
 
@@ -95,6 +108,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
 // Usually when we pass a function down the component tree, it's in order to link that function to an event listener, down the component tree
 
+/* ----------------------------------------------------------------------- */
+
 /* Adding a Backend to the Project */
 
 // There's a seperate project with a very simple Node.js server that can be run locally, and can listen to a local port for HTTP calls. In order to use it in this project, we need to open thr Node project, run the NPM script: start, and keep it running as long as we're using the back end
@@ -105,6 +120,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
 // Using Fetch API to get data from a server and then to update the front end using useState, will lead to an infinite loop - because useState will get the data and then trigger a new check for changes, then get the data again, then update again, etc. To avoid this, we have "side effects"\useEffect, which gives us a more fine-tuned control over when we want to trigger a DOM update and when not to
 
+/* ----------------------------------------------------------------------- */
+
 /* useEffect */
 
 // We have an example for useEffect in the PostsList.jsx component
@@ -114,6 +131,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 // useEffect() uses a "trick" in order to get async data without it's parameter function itself being async. The trick is to wrap a function inside the main function, and to call it immediately. This works in React (I'm not sure if it would work in vanilla JS...). In PostsList.jsx this general "pattern" for writing a useEffect() function can be seen
 
 // How does useEffect() know when to be triggered and run? That's what it's second parameter (the array) is for. The array contains any "dependency" (variable\array\object\function\etc.), which exists anywhere in the current component (either if it was defined in the component or passed down as a prop), and then whenever this dependency changes - that useEffect() function will be executed. If the array is empty, that useEffect() will only be run once, when the page loads (which is a common use case)
+
+/* ----------------------------------------------------------------------- */
 
 /* Routing - the Basics */
 
@@ -131,6 +150,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
 // The React Router library website: https://reactrouter.com/en/main
 
+/* ----------------------------------------------------------------------- */
+
 /* Layout Routes */
 
 // Layout routes define shared "layout" components, like the site header. There's an example for layout routes syntax here in main.jsx
@@ -142,3 +163,61 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 // Inside layout routes components, we need to import the Outlet component from the react-router-dom library. It's a special component that should be placed where the actual nested rout content should be rendered
 
 // Another use case for layout routes is in a modal window like we have in this project. The <Posts /> element is not a shared "layout" component, but it technically is supposed to contain the <NewPost /> component inside it, so technically, if we want to use layout routes, then <Posts /> has to be a parent of <NewPost /> inside the layout router that we define using createBrowserRouter()
+
+/* ----------------------------------------------------------------------- */
+
+/* Linking Routes and Navigating */
+
+// To be more accurate, this chapter talkes about "reactive links" (using a <Link /> component) and "programmatic navigation" (using the navigate() function)
+
+// In React, both reactive links and programmatic navigation use hooks to React's processes in order to preform navigation actions without full-page reloading. The main difference is that <Link /> is used as a component inside the return () expression, and navigate() is used as a function. But they basically do the same thing - navigate without full-page reloading
+
+// <Link /> requires import { Link } from 'react-router-dom'
+
+// <Link /> has a different syntax then <a> - it uses "to" instead of "href"
+
+/* ----------------------------------------------------------------------- */
+
+/* An More Efficient Alternative for Getting Data - loader() */
+
+// loader() is a method for getting data which is part of react-router-dom. It has a shorter and more readable syntax than using useState and useEffect to manage async actions. It allows us to "go up" one level of abstraction by taking care of several things in the background
+
+// To use loader() we need to do several things:
+
+// 1. Add a loader property in the router (in this case, inside main.jsx) which takes a function as it's value. This function has to be imported from the routed component, with an alias ("loader as postsLoader" in this case) to prevent a name clash in case that there are several different loaders
+
+// 2. Inside the routed component (which is <Posts /> in this case) we need to define the async HTTP request as a function and to export it, and to return the recieved data. This function will then be available in the current component and in all it's child components
+
+// 3. Inside the component that uses the loader() function (or inside it's child component that uses the loader() function, PostsList.jsx in this case), we need to import { useLoaderData } from 'react-router-dom', and then call useLoaderData() and store it's returned value inside a variable ("posts" in this case). If everythig was set up properly, the useLoaderData() function should recieve the resData.posts data that was returned in Posts.jsx and was routed through main.jsx
+
+// The router will then load the data that it's loader property requires, and only then continue to load/to route the component
+
+// After we do all that, we don't need to use useState and useEffect in order to make HTTP requests in an async way - loader() is all that we need
+
+// There is a way to display something before the async data is loaded to the <Posts /> component, like a "loading data" message, but this is not covered in this crash course (only in the full course)
+
+// NOTE: All React hooks need to be called (as functions) only inside of the component's main function
+
+/* ----------------------------------------------------------------------- */
+
+/* An More Efficient Alternative for Submitting Data - action() */
+
+// action() is also part of react-router-dom.
+
+// Just like loader(), action() doesn't let us do anything that we couldn't do without it, but it allows us to use easier syntax and to "go up" one level of abstraction by taking care of several things in the background
+
+// Just like with loader(), there's a coding pattern that needs to be used in order to apply action(). The steps are:
+
+// 1. Add an action property in the router
+
+// 2. Inside the routed component (<NewPost /> in this case), we need to export function action()
+
+// 3. Inside the component that uses the action() function, NewPost.jsx in this case), we need to get some data back that will be routed to where it's needed. In this case, we do that using the <Form /> component that's loaded from react-router-dom. the <Form /> component takes care of several things in the background, like returning data through the "name" parameter, returning a data boject with all of the form's input to to the action() function, and preventing a page reload when the form is submitted. Then, action() is hooked to the form submit action using the action attribute in the router, and it listens to form submission events. If a form is <Form /> component is submitted, the <Form /> component will activate the action attribute which is assigned to the relevant component in the router
+
+// There's more information in the comments section of the NewPost.jsx component
+
+/* ----------------------------------------------------------------------- */
+
+/* Dynamic Routes */
+
+//

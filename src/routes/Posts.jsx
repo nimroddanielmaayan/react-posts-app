@@ -15,6 +15,12 @@ function Posts() {
 
 export default Posts;
 
+export async function loader() {
+  const response = await fetch('http://localhost:8080/posts');
+  const resData = await response.json();
+  return resData.posts;
+}
+
 /* The Posts.jsx Component */
 
 // This is our root component for the project
